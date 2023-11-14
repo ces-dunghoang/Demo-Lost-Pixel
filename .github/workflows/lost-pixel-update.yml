@@ -1,0 +1,38 @@
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16.x
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Storybook Components
+        run: npm run build-storybook
+
+      - name: Run Lost Pixel Container
+        id: lp
+        uses: lost-pixel/lost-pixel@v2.11.0
+        env:
+          LOST_PIXEL_MODE: update
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4
+        if: ${{ failure() && steps.lp.conclusion == 'failure' }}
+        with:
+          token: ${{ secrets.PAT_LOST_PIXEL }}
+          commit-message: Update Lost Pixel baselines
+          delete-branch: true
+          branch: "lost-pixel-baselines/${{ github.ref_name }}"
+          title: "Lost Pixel Baseline Update - ${{ github.ref_name }}"
+          body: Automated baseline update PR for Lost Pixel
