@@ -13,5 +13,6 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src"],
+  "exclude": ["lostpixel.config.js"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
